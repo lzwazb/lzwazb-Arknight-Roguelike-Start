@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>萨卡兹肉鸽开局抽取</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+
+        #app {
+            background-color: #fff;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+            max-width: 800px;
+            width: 90%;
+            box-sizing: border-box;
+
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .theme-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .theme-selector button {
+             background-color: #6c757d;
+             color: white;
+             border: none;
+             width: 100px;
+             border-radius: 8px;
+             padding: 10px 22px;
+             font-size: 1.1em;
+             cursor: pointer;
+             transition: background-color 0.3s ease, transform 0.1s ease;
+             outline: none;
+        }
+
+        .theme-selector button.active-theme {
+            background-color: #007bff;
+            box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        #app .main-title {
+            font-size: 2.0em;
+            color: #4a4a4a;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .draw-section {
+             width: 100%;
+        }
+
+        #app p {
+            width: 800px;
+            margin-bottom: 15px;
+            color: #555;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            /* 垂直居中对齐 */
+            justify-content: space-between;
+            /* 文本和按钮两端对齐 */
+            gap: 20px;
+            /* 文本和按钮之间的间距 */
+            flex-wrap: wrap;
+            /* 允许内容换行，防止在小屏幕上溢出 */
+            width: 100%;
+            max-width: 600px;
+            padding: 0 20px;
+            box-sizing: border-box;
+        }
+
+        #app p span {
+            font-weight: bold;
+            color: #007bff;
+            flex-shrink: 0;
+        }
+
+        #app button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 1.0em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease;
+            outline: none;
+            flex-shrink: 0;
+        }
+
+        #app button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+
+        #app button:active {
+            background-color: #004085;
+            transform: translateY(0);
+        }
+
+
+
+        /* 署名样式 */
+        #signature {
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #888;
+            opacity: 0.7;
+            /* 透明度 */
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <!-- 选模式 -->
+        <div class="theme-selector">
+            <button :class="{ 'active-theme': activeTheme === 'sarkaz' }" @click="switchTheme('sarkaz')">萨卡兹</button>
+            <button :class="{ 'active-theme': activeTheme === 'jieyuan' }" @click="switchTheme('jieyuan')">界园</button>
+        </div>
+        <!-- 开局 -->
+        <div v-if="activeTheme" class="draw-section">
+            <p class="main-title"><strong>请抽取开局组合</strong></p>
+            <p>开局分队: <span>{{ number }}</span> <button @click="getRandomNumber">抽取分队</button></p>
+            <p>开局六星干员: <span>{{ sixstar }}</span> <button @click="getRandomstarsix">抽取干员</button></p>
+            <p>抽取难度: <span>{{ level }}</span> <button @click="getRandomlevel">抽取难度</button></p>
+            <p>抽取结局: <span>{{ ending }}</span> <button @click="getRandomending">抽取结局</button></p>
+            <p v-if="currentThemeData.xiangyus">抽取相遇藏品：<span>{{ xiangyu }}</span> <button @click="getRandomxiangyu">抽取藏品</button></p>
+        </div>
+         <div v-else>
+            <p class="main-title">请选择主题</p>
+        </div>
+        <div id="signature">
+            by：我永远喜欢阿尔图罗
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref , computed} = Vue;
+
+        createApp({
+            setup() {
+
+                const activeTheme = ref(null);
+
+                const sixstars = [
+                    "酒神", "新约能天使", "荒芜拉普兰德", "迷迭香", "维什戴尔",
+                    "银灰", "仇白", "佩佩", "空弦", "logos",
+                    "mon3tr", "凯尔希", "魔王", "夜刀", "ela",
+                    "风笛", "伊内丝", "艾丽妮", "乌尔比安", "玛恩纳",
+                    "涤火杰西卡", "余", "艾雅法拉", "澄闪", "W",
+                    "黑", "能天使", "早露", "ash", "假日威龙陈",
+                    "远牙", "菲亚梅塔", "鸿雪", "提丰", "莱伊",
+                    "娜仁图亚", "蕾缪安", "伊芙利特", "莫斯提马", "刻俄柏",
+                    "夕", "异客", "卡涅利安", "黑键", "林",
+                    "霍尔海雅", "妮芙", "玛露希尔", "烛煌", "死芒",
+                    "推进之王", "嵯峨", "琴柳", "焰尾", "伺夜",
+                    "缪尔赛思", "忍冬", "陈", "斯卡蒂", "赫拉格",
+                    "煌", "棘刺", "史尔特尔", "山", "帕拉斯",
+                    "耀骑士临光", "百炼嘉维尔", "重岳", "圣约送葬人", "赫德雷",
+                    "薇薇安娜", "止颂", "锏", "左乐", "维娜·维多利亚",
+                    "隐德莱希", "焰影苇草", "麦哲伦", "灵知", "令",
+                    "阿", "傀影", "温蒂", "歌蕾蒂娅", "水月",
+                    "老鲤", "归溟幽灵鲨", "多萝西", "缄默德克萨斯", "阿斯卡纶",
+                    "引星棘刺", "司霆惊蛰", "电弧", "遥", "斩业星熊"
+                ];
+
+                const themes = {
+                    sarkaz: {
+                        numbers: ["魂灵护送分队", "博闻广记分队", "蓝图测绘分队", "指挥分队", "集群分队",
+                    "后勤分队", "矛头分队", "突击战术分队", "堡垒战术分队", "远程战术分队",
+                    "破坏战术分队", "高规格分队", "因地制宜分队", "点刺成锭分队", "拟态学者分队",
+                    "异想天开分队", "专业人士分队"],
+                        sixstars: sixstars,
+                        levels: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+                        ends: [1, 2, 13, 14, 15, 23, 24, 25, 135, 145, 235, 245],
+                        xiangyus: ["希望时代的涂鸦", "死仇时代的恨意", "美愿时代的留恋"]
+                    },
+                    jieyuan: {
+                        numbers: ["指挥分队", "后勤分队", "特勤分队", "突击战术分队", "堡垒战术分队", 
+                    "远程战术分队", "破坏战术分队", "高规格分队", "高台突破分队", "地面突破分队", "游客分队",
+                    "司岁台分队", "天师府分队"],
+                        sixstars: sixstars,
+                        levels: [9, 10, 11, 12, 13, 14, 15],
+                        ends: [1, 2, 3, 13, 23]
+                    }
+                };
+
+                // const levels = ref([9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
+                // const ends = ref([1, 2, 13, 14, 15, 23, 24, 25, 135, 145, 235, 245])
+                // const xiangyus = ref(["希望时代的涂鸦", "死仇时代的恨意", "美愿时代的留恋"])
+
+                //初始化对象
+                const number = ref(null);
+                const sixstar = ref(null);
+                const level = ref(null);
+                const ending = ref(null);
+                const xiangyu = ref(null);
+
+                const currentThemeData = computed(() => {
+                    return activeTheme.value ? themes[activeTheme.value] : {};
+                });
+
+                const switchTheme = (theme) => {
+                    activeTheme.value = theme;
+                    // 重置初始内容
+                    number.value = null;
+                    sixstar.value = null;
+                    level.value = null;
+                    ending.value = null;
+                    xiangyu.value = null;
+                };
+
+                //获取随机数
+                const getRandomItem = (arr) => {
+                    const randomIndex = Math.floor(Math.random() * arr.length);
+                    return arr[randomIndex];
+                };
+
+                //抽取选项
+                const getRandomNumber = () => { number.value = getRandomItem(currentThemeData.value.numbers); };
+                const getRandomstarsix = () => { sixstar.value = getRandomItem(currentThemeData.value.sixstars); };
+                const getRandomlevel = () => { level.value = getRandomItem(currentThemeData.value.levels); };
+                const getRandomending = () => { ending.value = getRandomItem(currentThemeData.value.ends); };
+                const getRandomxiangyu = () => { xiangyu.value = getRandomItem(currentThemeData.value.xiangyus); };
+
+                return {
+                    number,
+                    sixstar,
+                    level,
+                    ending,
+                    xiangyu,
+                    getRandomNumber,
+                    getRandomstarsix,
+                    getRandomlevel,
+                    getRandomending,
+                    getRandomxiangyu,
+                    activeTheme,
+                    currentThemeData,
+                    switchTheme
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
